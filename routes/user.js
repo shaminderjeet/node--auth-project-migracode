@@ -4,7 +4,7 @@ const fs = require("fs");
 
 const usersDb = require("../database/db.json");
 
-const generateJWT = require("../utils/generateJWT.js");
+const generateJWT = require("../utils/generateJWT");
 
 const authenticate = require("../middleware/authenticate");
 const router = express.Router();
@@ -43,18 +43,17 @@ router.post("/sign-up", async (req, res) => {
 });
 
 router.post("/sign-in", async (req, res) => {
-  console.log(req.body);
   const { email, password } = req.body;
 
   try {
-    const user = usersDb.filter((user) => user.email === email);
+    const user = await usersDb.filter((user) => user.email === email);
 
     if (user.length === 0) {
       return res
         .status(401)
         .json({ error: "Invalid Credential", isAuthenticated: false });
     }
-    console.log(user);
+
     const isValidPassword = await bcrypt.compare(password, user[0].password);
 
     if (!isValidPassword) {
@@ -74,7 +73,9 @@ router.post("/sign-in", async (req, res) => {
 
 router.post("/auth", authenticate, (req, res) => {
   try {
+
     res.status(200).send({ isAuthenticated: true });
+
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ error: error.message, isAuthenticated: false });
@@ -82,3 +83,4 @@ router.post("/auth", authenticate, (req, res) => {
 });
 
 module.exports = router;
+
